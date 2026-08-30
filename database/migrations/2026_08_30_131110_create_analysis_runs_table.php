@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('nama_file_upload');
-            $table->date('periode_awal');
-            $table->date('periode_akhir');
+            $table->date('periode_awal')->nullable();
+            $table->date('periode_akhir')->nullable();
             $table->decimal('min_support', 5, 4)->default(0.10);
             $table->unsignedTinyInteger('max_len')->default(2);
             $table->decimal('min_confidence', 5, 4)->default(0.60);
