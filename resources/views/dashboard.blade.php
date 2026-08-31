@@ -1,18 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#A1582F]">PT SRI AYU</p>
-                <h2 class="mt-2 text-2xl font-bold text-slate-900">Dashboard Utama</h2>
-            </div>
-            <span class="inline-flex items-center rounded-full border border-[#F0D7A7] bg-[#FFF6E7] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#7B4B2A]">
-                {{ ucfirst(str_replace('_', ' ', Auth::user()->role)) }}
-            </span>
-        </div>
-    </x-slot>
-
-    <div class="bg-[#F7F5F0] py-8">
+    <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+            <!-- 1. Banner Utama Selamat Datang -->
             <div class="mb-8 rounded-3xl border border-[#F0D7A7] bg-gradient-to-r from-[#1F2A2D] via-[#1B2427] to-[#11181B] p-6 text-white shadow-sm sm:p-8">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div>
@@ -31,33 +21,64 @@
                 </div>
             </div>
 
+            <!-- 2. Ringkasan Stats Grid -->
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <!-- Total Analisis -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <p class="text-sm text-slate-500">Total Analisis</p>
-                    <p class="mt-4 text-3xl font-bold text-slate-900">12</p>
-                    <p class="mt-2 text-xs text-emerald-600">+3 dari bulan lalu</p>
+                    <p class="mt-4 text-3xl font-bold text-slate-900">{{ $totalAnalisis }}</p>
+                    <p class="mt-2 text-xs text-emerald-600">
+                        @if ($totalAnalisis > 0)
+                            Data tersedia di sistem
+                        @else
+                            Belum ada data
+                        @endif
+                    </p>
                 </div>
 
+                <!-- Transaksi Diproses -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <p class="text-sm text-slate-500">Transaksi Diproses</p>
-                    <p class="mt-4 text-3xl font-bold text-slate-900">1.248</p>
-                    <p class="mt-2 text-xs text-sky-600">Data terbaru tersedia</p>
+                    <p class="mt-4 text-3xl font-bold text-slate-900">{{ number_format($totalTransaksi) }}</p>
+                    <p class="mt-2 text-xs text-sky-600">
+                        @if ($totalTransaksi > 0)
+                            Data terbaru tersedia
+                        @else
+                            Belum ada transaksi
+                        @endif
+                    </p>
                 </div>
 
+                <!-- Periode Aktif -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <p class="text-sm text-slate-500">Periode Aktif</p>
-                    <p class="mt-4 text-3xl font-bold text-slate-900">2026</p>
-                    <p class="mt-2 text-xs text-amber-600">Filter aktif</p>
+                    <p class="mt-4 text-3xl font-bold text-slate-900">{{ $periodeAktif }}</p>
+                    <p class="mt-2 text-xs text-amber-600">
+                        @if ($latestRun)
+                            Filter aktif
+                        @else
+                            Belum ada periode
+                        @endif
+                    </p>
                 </div>
 
+                <!-- Status Sistem -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <p class="text-sm text-slate-500">Status Sistem</p>
-                    <p class="mt-4 text-3xl font-bold text-slate-900">Normal</p>
-                    <p class="mt-2 text-xs text-emerald-600">Semua modul berjalan</p>
+                    <p class="mt-4 text-3xl font-bold text-slate-900">{{ $statusSistem }}</p>
+                    <p class="mt-2 text-xs text-emerald-600">
+                        @if ($statusSistem === 'Normal')
+                            Semua modul berjalan
+                        @else
+                            Menunggu data upload
+                        @endif
+                    </p>
                 </div>
             </div>
 
+            <!-- 3. Section Bawah: Ringkasan Aktivitas & Menu Cepat -->
             <div class="mt-8 grid gap-6 lg:grid-cols-[1.5fr_0.9fr]">
+                <!-- Ringkasan Aktivitas -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div class="flex items-center justify-between">
                         <h4 class="text-lg font-semibold text-slate-900">Ringkasan Aktivitas</h4>
@@ -65,38 +86,22 @@
                     </div>
 
                     <div class="mt-6 space-y-4">
-                        <div>
-                            <div class="mb-2 flex items-center justify-between text-sm text-slate-600">
-                                <span>Data transaksi masuk</span>
-                                <span>82%</span>
+                        @foreach ($activityMetrics as $metric)
+                            <div>
+                                <div class="mb-2 flex items-center justify-between text-sm text-slate-600">
+                                    <span>{{ $metric['label'] }}</span>
+                                    <span>{{ $metric['value'] }}%</span>
+                                </div>
+                                <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                                    <div class="h-full rounded-full {{ $metric['color'] }}" style="width: {{ $metric['value'] }}%"></div>
+                                </div>
+                                <p class="mt-2 text-[11px] text-slate-500">{{ $metric['detail'] }}</p>
                             </div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-full w-[82%] rounded-full bg-[#A1582F]"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="mb-2 flex items-center justify-between text-sm text-slate-600">
-                                <span>Pola pembelian terdeteksi</span>
-                                <span>64%</span>
-                            </div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-full w-[64%] rounded-full bg-[#F4C76F]"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="mb-2 flex items-center justify-between text-sm text-slate-600">
-                                <span>Ketersediaan data gudang</span>
-                                <span>91%</span>
-                            </div>
-                            <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-full w-[91%] rounded-full bg-[#2F8F74]"></div>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
 
+                <!-- Menu Cepat -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <h4 class="text-lg font-semibold text-slate-900">Menu Cepat</h4>
                     <div class="mt-5 space-y-3">
@@ -119,6 +124,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </x-app-layout>

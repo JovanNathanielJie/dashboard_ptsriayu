@@ -15,7 +15,7 @@
             </svg>
 
             <div class="relative z-10 text-paper max-w-sm">
-                <p class="font-mono text-xs tracking-[0.25em] text-[#dfeecf] uppercase mb-4">PT SRI AYU CITRA MANDIRI</p>
+                <p class="font-mono text-xs tracking-[0.25em] text-[#dfeecf] uppercase mb-4">SISTEM ANALISIS TRANSAKSI</p>
                 <h1 class="font-display text-4xl leading-tight mb-4 text-[#f7f5f0]">
                     Dashboard Apriori<br>
                     untuk Analisis Transaksi.

@@ -11,26 +11,24 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <style>
+            [x-cloak] { display: none !important; }
+        </style>
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-[#F7F5F0]">
+    <body class="font-sans antialiased text-slate-800 bg-[#F7F5F0]">
+        <div x-data="{ sidebarOpen: false }" class="relative min-h-screen bg-[#F7F5F0]">
+
+            <!-- Navigation -->
             @include('layouts.navigation')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="border-b border-[#EADCC7] bg-[#F7F5F0] shadow-sm">
-                    <div class="mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
-
-            <!-- Page Content -->
-            <main>
+            <!-- Main Content: Tambahkan pt-24 agar banner tidak tertutup topbar -->
+            <main class="w-full pt-28 pb-12">
                 {{ $slot }}
             </main>
+
         </div>
     </body>
 </html>
