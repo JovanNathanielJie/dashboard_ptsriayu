@@ -3,3 +3,4 @@ pandas
 openpyxl
 mlxtend
 python-multipart
+uvicorn
