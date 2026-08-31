@@ -37,6 +37,17 @@
                         <form id="uploadForm" action="{{ route('upload.store') }}" method="POST" enctype="multipart/form-data" class="mt-6 space-y-5">
                             @csrf
 
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="periode_awal" class="mb-2 block text-sm font-medium text-ink">Periode Awal</label>
+                                    <input id="periode_awal" name="periode_awal" type="date" value="{{ old('periode_awal') }}" required class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-sm text-ink shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                </div>
+                                <div>
+                                    <label for="periode_akhir" class="mb-2 block text-sm font-medium text-ink">Periode Akhir</label>
+                                    <input id="periode_akhir" name="periode_akhir" type="date" value="{{ old('periode_akhir') }}" required class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-sm text-ink shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                </div>
+                            </div>
+
                             <div class="rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 p-6 transition hover:border-primary hover:bg-primary/10">
                                 <label for="excel_file" class="block cursor-pointer">
                                     <div class="flex flex-col items-center justify-center gap-3 text-center">

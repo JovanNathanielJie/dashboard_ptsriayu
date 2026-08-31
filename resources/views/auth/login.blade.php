@@ -1,36 +1,37 @@
 <x-guest-layout>
     <div class="min-h-screen flex font-sans">
 
-        {{-- PANEL KIRI: Brand, hanya tampil di layar besar --}}
-        <div class="hidden lg:flex lg:w-1/2 bg-ink relative overflow-hidden items-center justify-center p-12">
-            {{-- Motif garis penghubung, elemen signature --}}
+        <div class="hidden lg:flex lg:w-1/2 bg-[#1d4d3d] relative overflow-hidden items-center justify-center p-12">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.08),transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(148,197,127,0.16),transparent_30%)]"></div>
+
             <svg class="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 400 600" fill="none">
-                <circle cx="80" cy="120" r="4" fill="#E2A33D" />
-                <circle cx="220" cy="80" r="3" fill="#F7F5F0" />
-                <circle cx="320" cy="200" r="4" fill="#C1584A" />
-                <circle cx="140" cy="320" r="3" fill="#F7F5F0" />
-                <circle cx="300" cy="420" r="4" fill="#E2A33D" />
-                <circle cx="90" cy="480" r="3" fill="#F7F5F0" />
-                <path d="M80,120 L220,80 L320,200 L140,320 L300,420 L90,480" stroke="#F7F5F0" stroke-width="1" stroke-dasharray="4 6" />
+                <circle cx="80" cy="120" r="4" fill="#d7ebce" />
+                <circle cx="220" cy="80" r="3" fill="#f7f5f0" />
+                <circle cx="320" cy="200" r="4" fill="#c7e0b9" />
+                <circle cx="140" cy="320" r="3" fill="#f7f5f0" />
+                <circle cx="300" cy="420" r="4" fill="#d7ebce" />
+                <circle cx="90" cy="480" r="3" fill="#f7f5f0" />
+                <path d="M80,120 L220,80 L320,200 L140,320 L300,420 L90,480" stroke="#f7f5f0" stroke-width="1" stroke-dasharray="4 6" />
             </svg>
 
             <div class="relative z-10 text-paper max-w-sm">
-                <p class="font-mono text-xs tracking-widest text-accent uppercase mb-4">Dashboard Apriori</p>
-                <h1 class="font-display text-4xl leading-tight mb-4">
-                    Menemukan pola di balik setiap transaksi.
+                <p class="font-mono text-xs tracking-[0.25em] text-[#dfeecf] uppercase mb-4">PT SRI AYU CITRA MANDIRI</p>
+                <h1 class="font-display text-4xl leading-tight mb-4 text-[#f7f5f0]">
+                    Dashboard Apriori<br>
+                    untuk Analisis Transaksi.
                 </h1>
-                <p class="text-paper/70 text-sm leading-relaxed">
-                    Sistem analisis pola pembelian produk PT Sriayu Citra Mandiri,
-                    berbasis algoritma Apriori.
+                <p class="text-[#dfeecf]/80 text-sm leading-relaxed">
+                    Sistem analisis pola pembelian produk berbasis algoritma Apriori,
+                    untuk mendukung pengambilan keputusan penjualan dan inventori.
                 </p>
             </div>
         </div>
 
-        {{-- PANEL KANAN: Form login --}}
-        <div class="w-full lg:w-1/2 flex items-center justify-center bg-paper p-8">
+        <div class="w-full lg:w-1/2 flex items-center justify-center bg-[#F7F5F0] p-8">
             <div class="w-full max-w-sm">
+                <p class="mb-2 text-xs font-medium tracking-[0.22em] text-[#A1582F] uppercase">Login Akses</p>
                 <h2 class="font-display text-2xl text-ink mb-1">Masuk ke akun Anda</h2>
-                <p class="text-muted text-sm mb-8">Silakan masuk sesuai peran Anda di sistem.</p>
+                <p class="text-muted text-sm mb-8">Silakan masuk sesuai peran Anda.</p>
 
                 <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -58,7 +59,7 @@
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-primary hover:bg-primary-dark text-paper font-medium py-2.5 rounded-lg transition-colors">
+                        class="w-full bg-[#A1582F] hover:bg-[#8d4b2a] text-white font-medium py-2.5 rounded-lg transition-colors shadow-sm">
                         Masuk
                     </button>
                 </form>
