@@ -5,6 +5,7 @@ from datetime import datetime
 from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import apriori, association_rules
 import io
+import time
 
 app = FastAPI(title="Apriori Service - PT Sriayu Citra Mandiri")
 
@@ -18,10 +19,12 @@ async def parse_excel(
     periode_awal: str = Form(...),
     periode_akhir: str = Form(...),
 ):
+    start_time = time.time()
+
     # 1. Baca file Excel mentah (format ekspor Accurate Online, blok berulang per faktur)
     try:
         contents = await file.read()
-        wb = openpyxl.load_workbook(io.BytesIO(contents), data_only=True)
+        wb = openpyxl.load_workbook(io.BytesIO(contents), data_only=True, read_only=True)
         try:
             sheet = wb["Rincian Faktur Penjualan"]
         except KeyError:
@@ -94,6 +97,9 @@ async def parse_excel(
     df_clean = df_clean.copy()
     df_clean["tanggal"] = df_clean["tanggal"].dt.strftime("%Y-%m-%d")
     items = df_clean[["nomor_faktur", "tanggal", "nama_barang"]].to_dict(orient="records")
+
+    elapsed = time.time() - start_time
+    print(f"[TIMING] Proses parse-excel selesai dalam {elapsed:.2f} detik")
 
     return {
         "summary": {
