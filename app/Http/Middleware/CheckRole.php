@@ -19,7 +19,14 @@ class CheckRole
             abort(401);
         }
 
-        $allowedRoles = array_filter(array_map('trim', $roles), fn ($role) => $role !== '');
+        // Support both single roles dan comma-separated roles
+        // Contoh: role:admin_penjualan atau role:direktur_utama,admin_penjualan
+        $allowedRoles = [];
+        foreach ($roles as $roleStr) {
+            $splitRoles = array_map('trim', explode(',', $roleStr));
+            $allowedRoles = array_merge($allowedRoles, $splitRoles);
+        }
+        $allowedRoles = array_filter($allowedRoles, fn ($role) => $role !== '');
 
         if ($allowedRoles === []) {
             abort(403, 'Role tidak diizinkan untuk mengakses halaman ini.');

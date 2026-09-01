@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,11 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+
+// Route Riwayat - Akses untuk direktur_utama dan admin_penjualan
+Route::get('/riwayat', [RiwayatController::class, 'index'])
+    ->middleware(['auth', 'role:direktur_utama,admin_penjualan'])
+    ->name('riwayat.index');
 
 Route::middleware(['auth', 'role:admin_penjualan'])->group(function () {
     Route::get('/upload', [UploadController::class, 'create'])->name('upload.create');
