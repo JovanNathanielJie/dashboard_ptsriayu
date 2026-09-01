@@ -56,6 +56,7 @@ class DashboardController extends Controller
                     ? (($metricRun->total_baris_clean ?? 0) . ' dari ' . $metricRun->total_baris_raw . ' baris valid')
                     : 'Belum ada data unggah',
                 'color' => 'bg-[#A1582F]',
+                'hex' => '#A1582F',
             ],
             [
                 'label' => 'Pola pembelian terdeteksi',
@@ -65,7 +66,8 @@ class DashboardController extends Controller
                 'detail' => $metricRun && $metricRun->total_frequent_itemsets
                     ? (($metricRun->total_association_rules ?? 0) . ' aturan dari ' . $metricRun->total_frequent_itemsets . ' itemset')
                     : 'Belum ada pola terbentuk',
-                'color' => 'bg-[#F4C76F]',
+                'color' => 'bg-[#D99A29]',
+                'hex' => '#D99A29',
             ],
             [
                 'label' => 'Ketersediaan data gudang',
@@ -75,7 +77,8 @@ class DashboardController extends Controller
                 'detail' => $metricRun && ($metricRun->total_produk_unik ?? 0)
                     ? (($metricRun->total_produk_unik ?? 0) . ' produk terdaftar dalam ' . ($metricRun->total_faktur_unik ?? 0) . ' faktur')
                     : 'Belum ada data gudang',
-                'color' => 'bg-[#2F8F74]',
+                'color' => 'bg-[#1F6E56]',
+                'hex' => '#1F6E56'
             ],
         ];
 

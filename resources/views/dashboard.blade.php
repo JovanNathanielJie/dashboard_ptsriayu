@@ -197,11 +197,14 @@
                             @foreach ($activityMetrics as $metric)
                                 <div>
                                     <div class="mb-2 flex items-center justify-between text-sm text-slate-600">
-                                        <span>{{ $metric['label'] }}</span>
-                                        <span>{{ $metric['value'] }}%</span>
+                                        <span class="font-medium text-slate-700">{{ $metric['label'] }}</span>
+                                        <span class="font-bold" style="color: {{ $metric['hex'] }}">{{ $metric['value'] }}%</span>
                                     </div>
-                                    <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                                        <div class="h-full rounded-full {{ $metric['color'] }}" style="width: {{ $metric['value'] }}%"></div>
+                                    <!-- Progress Bar Container -->
+                                    <div class="h-3 overflow-hidden rounded-full bg-slate-200/80">
+                                        <div class="h-full rounded-full transition-all duration-500 {{ $metric['color'] }}"
+                                            style="width: {{ max(5, $metric['value']) }}%; background-color: {{ $metric['hex'] }};">
+                                        </div>
                                     </div>
                                     <p class="mt-2 text-[11px] text-slate-500">{{ $metric['detail'] }}</p>
                                 </div>
@@ -224,6 +227,13 @@
                                 <span>Dashboard Overview</span>
                                 <span>→</span>
                             </a>
+
+                            @if (Auth::user()->isDirekturUtama() || Auth::user()->isAdminPenjualan())
+                                <a href="{{ route('riwayat.index') }}" class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+                                    <span>Riwayat Hasil Analisis</span>
+                                    <span>→</span>
+                                </a>
+                            @endif
 
                             <a href="{{ route('profile.edit') }}" class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
                                 <span>Profil Pengguna</span>
