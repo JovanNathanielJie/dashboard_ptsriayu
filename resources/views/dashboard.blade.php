@@ -13,11 +13,20 @@
                         </p>
                     </div>
 
-                    @if (Auth::user()->isAdminPenjualan())
-                        <a href="{{ route('upload.create') }}" class="inline-flex items-center justify-center rounded-xl bg-[#F4C76F] px-5 py-3 text-sm font-semibold text-[#1F2A2D] transition hover:bg-[#e9ba5d]">
-                            + Unggah Data Transaksi
-                        </a>
-                    @endif
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        @if (Auth::user()->isAdminPenjualan())
+                            <a href="{{ route('upload.create') }}" class="inline-flex items-center justify-center rounded-xl bg-[#F4C76F] px-5 py-3 text-sm font-semibold text-[#1F2A2D] transition hover:bg-[#e9ba5d]">
+                                + Unggah Data Transaksi
+                            </a>
+
+                            @if ($latestRun)
+                                <!-- BAGIAN B: Tombol Ubah Parameter (bg-accent) -->
+                                <a href="{{ route('analysis.parameter', $latestRun) }}" class="inline-flex items-center justify-center rounded-xl bg-[#C1584A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a8483f]">
+                                    ⚙️ Ubah Parameter
+                                </a>
+                            @endif
+                        @endif
+                    </div>
                 </div>
             </div>
 
@@ -76,55 +85,250 @@
                 </div>
             </div>
 
-            <!-- 3. Section Bawah: Ringkasan Aktivitas & Menu Cepat -->
-            <div class="mt-8 grid gap-6 lg:grid-cols-[1.5fr_0.9fr]">
-                <!-- Ringkasan Aktivitas -->
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-lg font-semibold text-slate-900">Ringkasan Aktivitas</h4>
-                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">7 hari terakhir</span>
-                    </div>
-
-                    <div class="mt-6 space-y-4">
-                        @foreach ($activityMetrics as $metric)
+            <!-- 3. Section Bawah: Chart Visualisasi & Menu Cepat -->
+            <div class="mt-8 grid gap-6 lg:grid-cols-[1fr]">
+                <!-- BAGIAN C: Chart Visualisasi 10 Association Rules dengan Lift Tertinggi -->
+                @if ($latestRun && count($topRules) > 0)
+                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="flex items-center justify-between mb-6">
                             <div>
-                                <div class="mb-2 flex items-center justify-between text-sm text-slate-600">
-                                    <span>{{ $metric['label'] }}</span>
-                                    <span>{{ $metric['value'] }}%</span>
-                                </div>
-                                <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                                    <div class="h-full rounded-full {{ $metric['color'] }}" style="width: {{ $metric['value'] }}%"></div>
-                                </div>
-                                <p class="mt-2 text-[11px] text-slate-500">{{ $metric['detail'] }}</p>
+                                <h4 class="text-lg font-semibold text-slate-900">Aturan Asosiasi Teratas (Top 10)</h4>
+                                <p class="text-sm text-slate-500 mt-1">Berdasarkan nilai lift tertinggi</p>
                             </div>
-                        @endforeach
-                    </div>
-                </div>
+                            @if (Auth::user()->isAdminPenjualan())
+                                <a href="{{ route('analysis.parameter', $latestRun) }}" class="text-sm font-medium text-[#C1584A] hover:underline">
+                                    Edit Parameter →
+                                </a>
+                            @endif
+                        </div>
 
-                <!-- Menu Cepat -->
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h4 class="text-lg font-semibold text-slate-900">Menu Cepat</h4>
-                    <div class="mt-5 space-y-3">
-                        @if (Auth::user()->isAdminPenjualan())
-                            <a href="{{ route('upload.create') }}" class="flex items-center justify-between rounded-xl border border-[#F0D7A7] bg-[#FFF8EE] px-4 py-3 text-sm font-medium text-[#7B4B2A] transition hover:bg-[#fff1d8]">
-                                <span>Unggah Data Transaksi + Analisis</span>
+                        <!-- Chart Container -->
+                        <div class="mb-8">
+                            <canvas id="rulesChart" height="80"></canvas>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="overflow-x-auto border-t border-slate-200 pt-6">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        <th class="px-4 py-3">Antecedent</th>
+                                        <th class="px-4 py-3 text-right">Support</th>
+                                        <th class="px-4 py-3 text-right">Confidence</th>
+                                        <th class="px-4 py-3 text-right">Lift</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($topRules as $rule)
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                            <td class="px-4 py-3">
+                                                <span class="font-mono text-[11px] text-slate-700" title="{{ $rule['label'] }}">
+                                                    {{ \Illuminate\Support\Str::limit($rule['antecedent'], 30) }} → {{ \Illuminate\Support\Str::limit($rule['consequent'], 20) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-right font-mono text-slate-900">{{ number_format($rule['support'] * 100, 2) }}%</td>
+                                            <td class="px-4 py-3 text-right font-mono text-slate-900">{{ number_format($rule['confidence'] * 100, 2) }}%</td>
+                                            <td class="px-4 py-3 text-right font-mono font-semibold text-[#2F6F62]">{{ number_format($rule['lift'], 3) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @elseif ($latestRun && count($topRules) === 0)
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+                        <p class="text-sm text-amber-800">
+                            📊 Belum ada aturan asosiasi yang ditemukan pada analisis ini. Coba ubah parameter analisis untuk hasil yang berbeda.
+                        </p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- 4. Menu Cepat -->
+            <div class="mt-8">
+            <!-- 3. Section Bawah: Chart Visualisasi & Menu Cepat -->
+            <div class="mt-8 space-y-6">
+                <!-- BAGIAN C: Chart Visualisasi 10 Association Rules dengan Lift Tertinggi -->
+                @if ($latestRun && count($topRules) > 0)
+                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h4 class="text-lg font-semibold text-slate-900">Aturan Asosiasi Teratas (Top 10)</h4>
+                                <p class="text-sm text-slate-500 mt-1">Berdasarkan nilai lift tertinggi</p>
+                            </div>
+                            @if (Auth::user()->isAdminPenjualan())
+                                <a href="{{ route('analysis.parameter', $latestRun) }}" class="text-sm font-medium text-[#C1584A] hover:underline">
+                                    Edit Parameter →
+                                </a>
+                            @endif
+                        </div>
+
+                        <!-- Chart Container -->
+                        <div class="mb-8">
+                            <canvas id="rulesChart" height="80"></canvas>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="overflow-x-auto border-t border-slate-200 pt-6">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        <th class="px-4 py-3">Antecedent → Consequent</th>
+                                        <th class="px-4 py-3 text-right">Support</th>
+                                        <th class="px-4 py-3 text-right">Confidence</th>
+                                        <th class="px-4 py-3 text-right">Lift</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($topRules as $rule)
+                                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                            <td class="px-4 py-3">
+                                                <span class="font-mono text-[11px] text-slate-700" title="{{ $rule['label'] }}">
+                                                    {{ \Illuminate\Support\Str::limit($rule['antecedent'], 30) }} → {{ \Illuminate\Support\Str::limit($rule['consequent'], 20) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-right font-mono text-slate-900">{{ number_format($rule['support'] * 100, 2) }}%</td>
+                                            <td class="px-4 py-3 text-right font-mono text-slate-900">{{ number_format($rule['confidence'] * 100, 2) }}%</td>
+                                            <td class="px-4 py-3 text-right font-mono font-semibold text-[#2F6F62]">{{ number_format($rule['lift'], 3) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @elseif ($latestRun && count($topRules) === 0)
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+                        <p class="text-sm text-amber-800">
+                            📊 Belum ada aturan asosiasi yang ditemukan pada analisis ini. Coba ubah parameter analisis untuk hasil yang berbeda.
+                        </p>
+                    </div>
+                @endif
+
+                <!-- Layout: Ringkasan Aktivitas & Menu Cepat -->
+                <div class="grid gap-6 lg:grid-cols-[1.5fr_0.9fr]">
+                    <!-- Ringkasan Aktivitas -->
+                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-lg font-semibold text-slate-900">Ringkasan Aktivitas</h4>
+                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">7 hari terakhir</span>
+                        </div>
+
+                        <div class="mt-6 space-y-4">
+                            @foreach ($activityMetrics as $metric)
+                                <div>
+                                    <div class="mb-2 flex items-center justify-between text-sm text-slate-600">
+                                        <span>{{ $metric['label'] }}</span>
+                                        <span>{{ $metric['value'] }}%</span>
+                                    </div>
+                                    <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                                        <div class="h-full rounded-full {{ $metric['color'] }}" style="width: {{ $metric['value'] }}%"></div>
+                                    </div>
+                                    <p class="mt-2 text-[11px] text-slate-500">{{ $metric['detail'] }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Menu Cepat -->
+                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <h4 class="text-lg font-semibold text-slate-900">Menu Cepat</h4>
+                        <div class="mt-5 space-y-3">
+                            @if (Auth::user()->isAdminPenjualan())
+                                <a href="{{ route('upload.create') }}" class="flex items-center justify-between rounded-xl border border-[#F0D7A7] bg-[#FFF8EE] px-4 py-3 text-sm font-medium text-[#7B4B2A] transition hover:bg-[#fff1d8]">
+                                    <span>Unggah Data Transaksi + Analisis</span>
+                                    <span>→</span>
+                                </a>
+                            @endif
+
+                            <a href="{{ route('dashboard') }}" class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+                                <span>Dashboard Overview</span>
                                 <span>→</span>
                             </a>
-                        @endif
 
-                        <a href="{{ route('dashboard') }}" class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
-                            <span>Dashboard Overview</span>
-                            <span>→</span>
-                        </a>
-
-                        <a href="{{ route('profile.edit') }}" class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
-                            <span>Profil Pengguna</span>
-                            <span>→</span>
-                        </a>
+                            <a href="{{ route('profile.edit') }}" class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+                                <span>Profil Pengguna</span>
+                                <span>→</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
+
+    <!-- Chart.js Script untuk Visualisasi Aturan Asosiasi -->
+    @if ($latestRun && count($topRules) > 0)
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Persiapkan data untuk Chart.js
+                const topRules = @json($topRules);
+
+                // Warna gradient dari primary (#2F6F62) ke link (#C1584A)
+                const labels = topRules.map(rule => rule.label.length > 40 ? rule.label.substring(0, 37) + '...' : rule.label);
+                const liftValues = topRules.map(rule => rule.lift);
+                const maxLift = Math.max(...liftValues);
+
+                // Buat gradient warna berdasarkan lift value
+                const colors = liftValues.map(lift => {
+                    const ratio = lift / maxLift;
+                    // Interpolasi dari #2F6F62 (primary) ke #C1584A (link)
+                    const r = Math.round(47 + (193 - 47) * ratio);
+                    const g = Math.round(111 + (88 - 111) * ratio);
+                    const b = Math.round(98 + (74 - 98) * ratio);
+                    return `rgb(${r}, ${g}, ${b})`;
+                });
+
+                const ctx = document.getElementById('rulesChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'barH',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Lift',
+                            data: liftValues,
+                            backgroundColor: colors,
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        const rule = topRules[context.dataIndex];
+                                        return [
+                                            'Support: ' + (rule.support * 100).toFixed(2) + '%',
+                                            'Confidence: ' + (rule.confidence * 100).toFixed(2) + '%'
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+    @endif
 </x-app-layout>
