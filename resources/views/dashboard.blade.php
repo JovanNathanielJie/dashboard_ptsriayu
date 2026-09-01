@@ -19,10 +19,9 @@
                                 + Unggah Data Transaksi
                             </a>
 
-                            @php $targetRun = $latestRun ?? $allRuns->first(); @endphp
-                            @if ($targetRun)
-                                <!-- BAGIAN B: Tombol Ubah Parameter (bg-accent) -->
-                                <a href="{{ route('analysis.parameter', $targetRun) }}" class="inline-flex items-center justify-center rounded-xl bg-[#C1584A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a8483f]">
+                            @if ($actualLatestRun)
+                                <!-- BAGIAN B: Tombol Ubah Parameter Terbaru (SELALU pakai run paling baru) -->
+                                <a href="{{ route('analysis.parameter', $actualLatestRun) }}" class="inline-flex items-center justify-center rounded-xl bg-[#C1584A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a8483f]">
                                     ⚙️ Ubah Parameter Terbaru
                                 </a>
                             @endif
@@ -119,10 +118,10 @@
                                 </form>
 
                                 @if (Auth::user()->isAdminPenjualan())
-                                    @php $cardRun = $latestRun ?? $allRuns->first(); @endphp
+                                    @php $cardRun = $selectedRun ?? $actualLatestRun; @endphp
                                     @if ($cardRun)
                                         <a href="{{ route('analysis.parameter', $cardRun) }}" class="text-sm font-medium text-[#C1584A] hover:underline">
-                                            Edit Parameter →
+                                            Edit Parameter Periode Ini →
                                         </a>
                                     @endif
                                 @endif

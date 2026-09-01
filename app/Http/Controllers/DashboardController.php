@@ -20,10 +20,13 @@ class DashboardController extends Controller
         // 2. Tangkap pilihan dropdown ('all' atau ID spesifik)
         $selectedRunId = $request->get('run_id', 'all');
 
-        // Jika 'all', $latestRun diset null untuk indikator mode gabungan
-        $latestRun = ($selectedRunId !== 'all')
-            ? $allRuns->firstWhere('id', $selectedRunId) ?? $allRuns->first()
+        // $selectedRun: run yang dipilih dari dropdown (bisa null jika 'all')
+        $selectedRun = ($selectedRunId !== 'all')
+            ? $allRuns->firstWhere('id', $selectedRunId)
             : null;
+
+        // $actualLatestRun: SELALU run paling baru, tidak terpengaruh dropdown
+        $actualLatestRun = $allRuns->first();
 
         // 3. Statistik Global
         $totalAnalisis = $allRuns->count();
@@ -34,14 +37,14 @@ class DashboardController extends Controller
             ->get()
             ->sum('transaksi_items_count');
 
-        $periodeAktif = $latestRun
-            ? ($latestRun->periode_akhir?->year ?? now()->year)
+        $periodeAktif = $selectedRun
+            ? ($selectedRun->periode_akhir?->year ?? now()->year)
             : 'Semua Periode';
 
         $statusSistem = $totalAnalisis > 0 ? 'Normal' : 'Belum ada data';
 
-        // Reference Run untuk Activity Metrics (gunakan run terbaru jika mode ALL)
-        $metricRun = $latestRun ?? $allRuns->first();
+        // Reference Run untuk Activity Metrics (SELALU gunakan run terbaru)
+        $metricRun = $actualLatestRun;
 
         $activityMetrics = [
             [
@@ -78,19 +81,18 @@ class DashboardController extends Controller
 
         // 4. Query Association Rules Top 10
         if ($selectedRunId === 'all') {
-            // MODE GABUNGAN (ALL): Ambil rule dengan Lift tertinggi dari seluruh run (grouping unik antecedent & consequent)
-            $topRules = AssociationRule::select(
-                    'antecedent',
-                    'consequent',
-                    DB::raw('MAX(lift) as lift'),
-                    DB::raw('MAX(support) as support'),
-                    DB::raw('MAX(confidence) as confidence')
-                )
-                ->whereIn('analysis_run_id', $allRuns->pluck('id'))
-                ->groupBy('antecedent', 'consequent')
-                ->orderBy('lift', 'desc')
-                ->limit(10)
+            // MODE GABUNGAN (ALL): Ambil rule dengan Lift tertinggi PER BARIS (bukan MAX per kolom terpisah)
+            // Grouping berdasarkan antecedent-consequent, ambil baris dengan lift tertinggi per grup
+            $topRules = AssociationRule::whereIn('analysis_run_id', $allRuns->pluck('id'))
                 ->get()
+                ->groupBy(function ($rule) {
+                    return $rule->antecedent . '|' . $rule->consequent;
+                })
+                ->map(function ($group) {
+                    return $group->sortByDesc('lift')->first();
+                })
+                ->sortByDesc('lift')
+                ->take(10)
                 ->map(function ($rule) {
                     return [
                         'label' => $rule->antecedent . ' → ' . $rule->consequent,
@@ -101,12 +103,13 @@ class DashboardController extends Controller
                         'confidence' => (float) $rule->confidence,
                     ];
                 })
+                ->values()
                 ->toArray();
         } else {
             // MODE PERIODE SPESIFIK
             $topRules = [];
-            if ($latestRun) {
-                $topRules = $latestRun->associationRules()
+            if ($selectedRun) {
+                $topRules = $selectedRun->associationRules()
                     ->orderBy('lift', 'desc')
                     ->limit(10)
                     ->get()
@@ -126,7 +129,8 @@ class DashboardController extends Controller
 
         return view('dashboard', compact(
             'allRuns',
-            'latestRun',
+            'selectedRun',
+            'actualLatestRun',
             'selectedRunId',
             'totalAnalisis',
             'totalTransaksi',
