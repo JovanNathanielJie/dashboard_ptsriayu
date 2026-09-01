@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\ProcessTransactionUpload;
+use App\Models\AnalysisRun;
 use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class UploadControllerTest extends TestCase
@@ -21,10 +20,32 @@ class UploadControllerTest extends TestCase
         $this->artisan('migrate:fresh')->run();
     }
 
-    public function test_admin_can_submit_excel_upload_and_dispatch_processing_job(): void
+    public function test_admin_can_submit_excel_upload_and_call_python_api(): void
     {
-        Storage::fake('local');
-        Queue::fake();
+        // Mock Python API response
+        Http::fake([
+            'http://127.0.0.1:8001/parse-excel' => Http::response([
+                'summary' => [
+                    'total_baris_raw' => 100,
+                    'total_baris_clean' => 95,
+                    'total_faktur_unik' => 10,
+                    'total_produk_unik' => 25,
+                    'baris_duplikat_dihapus' => 5,
+                ],
+                'items' => [
+                    [
+                        'nomor_faktur' => 'INV-001',
+                        'tanggal' => '2025-04-15',
+                        'nama_barang' => 'Produk A',
+                    ],
+                    [
+                        'nomor_faktur' => 'INV-001',
+                        'tanggal' => '2025-04-15',
+                        'nama_barang' => 'Produk B',
+                    ],
+                ],
+            ], 200),
+        ]);
 
         $user = User::factory()->create([
             'role' => 'admin_penjualan',
@@ -38,7 +59,21 @@ class UploadControllerTest extends TestCase
             'excel_file' => $file,
         ]);
 
-        $response->assertRedirect(route('upload.create'));
-        Queue::assertPushed(ProcessTransactionUpload::class);
+        // Check redirect to analysis.parameter
+        $analysisRun = AnalysisRun::first();
+        $response->assertRedirect(route('analysis.parameter', $analysisRun));
+
+        // Check database
+        $this->assertDatabaseHas('analysis_runs', [
+            'user_id' => $user->id,
+            'total_baris_raw' => 100,
+            'total_baris_clean' => 95,
+            'total_faktur_unik' => 10,
+            'total_produk_unik' => 25,
+            'status' => 'done',
+        ]);
+
+        // Check transaksi items inserted
+        $this->assertDatabaseCount('transaksi_items', 2);
     }
 }

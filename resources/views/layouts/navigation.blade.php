@@ -95,9 +95,9 @@
             </a>
 
             @if (Auth::user()->isAdminPenjualan())
-                <a href="{{ route('upload.create') }}" class="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition {{ request()->routeIs('upload.create') ? 'bg-[#dfeafc] text-[#1d3c6e] shadow-sm ring-1 ring-[#c9d8f4]' : 'hover:bg-slate-200/60' }}">
+                <a href="{{ route('upload.create') }}" class="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition {{ request()->routeIs('upload.create', 'analysis.*') ? 'bg-[#dfeafc] text-[#1d3c6e] shadow-sm ring-1 ring-[#c9d8f4]' : 'hover:bg-slate-200/60' }}">
                     <span>📤</span>
-                    <span>Upload Data</span>
+                    <span>Upload Data & Analisis</span>
                 </a>
             @endif
 

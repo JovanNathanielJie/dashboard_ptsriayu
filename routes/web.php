@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UploadController;
 use App\Models\User;
@@ -75,6 +76,8 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'role:admin_penjualan'])->group(function () {
     Route::get('/upload', [UploadController::class, 'create'])->name('upload.create');
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
+    Route::get('/analysis/{run}/parameter', [AnalysisController::class, 'parameter'])->name('analysis.parameter');
+    Route::post('/analysis/{run}/process', [AnalysisController::class, 'process'])->name('analysis.process');
 });
 
 Route::middleware('auth')->group(function () {

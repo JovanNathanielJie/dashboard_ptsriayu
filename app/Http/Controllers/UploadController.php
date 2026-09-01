@@ -95,9 +95,9 @@ class UploadController extends Controller
                 'status'             => 'done',
             ]);
 
-            return redirect()->route('upload.create')->with(
+            return redirect()->route('analysis.parameter', $analysisRun)->with(
                 'success',
-                "File berhasil diproses. {$summary['total_baris_clean']} baris transaksi tersimpan dari {$summary['total_faktur_unik']} faktur."
+                "File berhasil diproses. {$summary['total_baris_clean']} baris transaksi tersimpan dari {$summary['total_faktur_unik']} faktur. Silakan atur parameter Apriori untuk melanjutkan analisis."
             );
 
         } catch (ValidationException $e) {
