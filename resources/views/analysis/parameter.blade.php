@@ -92,7 +92,7 @@
                         step="0.01"
                         min="0.01"
                         max="1"
-                        value="{{ old('min_support', 0.10) }}"
+                        value="{{ old('min_support', $run->min_support ?? 0.10) }}"
                         required
                         class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
@@ -117,7 +117,7 @@
                         step="1"
                         min="1"
                         max="5"
-                        value="{{ old('max_len', 2) }}"
+                        value="{{ old('max_len', $run->max_len ?? 2) }}"
                         required
                         class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
@@ -142,7 +142,7 @@
                         step="0.01"
                         min="0.01"
                         max="1"
-                        value="{{ old('min_confidence', 0.60) }}"
+                        value="{{ old('min_confidence', $run->min_confidence ?? 0.60) }}"
                         required
                         class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
