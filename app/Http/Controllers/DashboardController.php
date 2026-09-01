@@ -4,75 +4,90 @@ namespace App\Http\Controllers;
 
 use App\Models\AnalysisRun;
 use App\Models\AssociationRule;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // BAGIAN A: Ambil AnalysisRun GLOBAL terbaru yang sudah selesai analisis
-        // (bukan filter by user, karena semua role perlu lihat hasil yang sama)
-        $latestRun = AnalysisRun::where('status', 'done')
+        // 1. Ambil semua daftar run yang sudah selesai
+        $allRuns = AnalysisRun::where('status', 'done')
             ->whereNotNull('total_frequent_itemsets')
             ->latest()
-            ->first();
+            ->get();
 
-        // Hitung total analisis di seluruh sistem yang sudah selesai
-        $totalAnalisis = AnalysisRun::where('status', 'done')
-            ->whereNotNull('total_frequent_itemsets')
-            ->count();
+        // 2. Tangkap pilihan dropdown ('all' atau ID spesifik)
+        $selectedRunId = $request->get('run_id', 'all');
 
-        // Total transaksi dari semua analisis yang selesai
+        // Jika 'all', $latestRun diset null untuk indikator mode gabungan
+        $latestRun = ($selectedRunId !== 'all')
+            ? $allRuns->firstWhere('id', $selectedRunId) ?? $allRuns->first()
+            : null;
+
+        // 3. Statistik Global
+        $totalAnalisis = $allRuns->count();
+
         $totalTransaksi = AnalysisRun::where('status', 'done')
             ->whereNotNull('total_frequent_itemsets')
             ->withCount('transaksiItems')
             ->get()
             ->sum('transaksi_items_count');
 
-        // Periode aktif dari run terbaru
-        $periodeAktif = $latestRun?->periode_akhir?->year ?? now()->year;
+        $periodeAktif = $latestRun
+            ? ($latestRun->periode_akhir?->year ?? now()->year)
+            : 'Semua Periode';
 
-        // Status sistem
         $statusSistem = $totalAnalisis > 0 ? 'Normal' : 'Belum ada data';
 
-        // Activity metrics berdasarkan run terbaru
+        // Reference Run untuk Activity Metrics (gunakan run terbaru jika mode ALL)
+        $metricRun = $latestRun ?? $allRuns->first();
+
         $activityMetrics = [
             [
                 'label' => 'Data transaksi masuk',
-                'value' => $latestRun && $latestRun->total_baris_raw
-                    ? min(100, max(0, (int) round((($latestRun->total_baris_clean ?? 0) / $latestRun->total_baris_raw) * 100)))
+                'value' => $metricRun && $metricRun->total_baris_raw
+                    ? min(100, max(0, (int) round((($metricRun->total_baris_clean ?? 0) / $metricRun->total_baris_raw) * 100)))
                     : 0,
-                'detail' => $latestRun && $latestRun->total_baris_raw
-                    ? (($latestRun->total_baris_clean ?? 0) . ' dari ' . $latestRun->total_baris_raw . ' baris valid')
+                'detail' => $metricRun && $metricRun->total_baris_raw
+                    ? (($metricRun->total_baris_clean ?? 0) . ' dari ' . $metricRun->total_baris_raw . ' baris valid')
                     : 'Belum ada data unggah',
                 'color' => 'bg-[#A1582F]',
             ],
             [
                 'label' => 'Pola pembelian terdeteksi',
-                'value' => $latestRun && $latestRun->total_frequent_itemsets
-                    ? min(100, max(0, (int) round((($latestRun->total_association_rules ?? 0) / max(1, $latestRun->total_frequent_itemsets)) * 100)))
+                'value' => $metricRun && $metricRun->total_frequent_itemsets
+                    ? min(100, max(0, (int) round((($metricRun->total_association_rules ?? 0) / max(1, $metricRun->total_frequent_itemsets)) * 100)))
                     : 0,
-                'detail' => $latestRun && $latestRun->total_frequent_itemsets
-                    ? (($latestRun->total_association_rules ?? 0) . ' aturan dari ' . $latestRun->total_frequent_itemsets . ' itemset')
+                'detail' => $metricRun && $metricRun->total_frequent_itemsets
+                    ? (($metricRun->total_association_rules ?? 0) . ' aturan dari ' . $metricRun->total_frequent_itemsets . ' itemset')
                     : 'Belum ada pola terbentuk',
                 'color' => 'bg-[#F4C76F]',
             ],
             [
                 'label' => 'Ketersediaan data gudang',
-                'value' => $latestRun && ($latestRun->total_faktur_unik ?? 0)
-                    ? min(100, max(0, (int) round((($latestRun->total_produk_unik ?? 0) / max(1, $latestRun->total_faktur_unik)) * 100)))
+                'value' => $metricRun && ($metricRun->total_faktur_unik ?? 0)
+                    ? min(100, max(0, (int) round((($metricRun->total_produk_unik ?? 0) / max(1, $metricRun->total_faktur_unik)) * 100)))
                     : 0,
-                'detail' => $latestRun && ($latestRun->total_produk_unik ?? 0)
-                    ? (($latestRun->total_produk_unik ?? 0) . ' produk terdaftar dalam ' . ($latestRun->total_faktur_unik ?? 0) . ' faktur')
+                'detail' => $metricRun && ($metricRun->total_produk_unik ?? 0)
+                    ? (($metricRun->total_produk_unik ?? 0) . ' produk terdaftar dalam ' . ($metricRun->total_faktur_unik ?? 0) . ' faktur')
                     : 'Belum ada data gudang',
                 'color' => 'bg-[#2F8F74]',
             ],
         ];
 
-        // BAGIAN C: Ambil 10 association rules dengan lift tertinggi untuk chart
-        $topRules = [];
-        if ($latestRun) {
-            $topRules = $latestRun->associationRules()
+        // 4. Query Association Rules Top 10
+        if ($selectedRunId === 'all') {
+            // MODE GABUNGAN (ALL): Ambil rule dengan Lift tertinggi dari seluruh run (grouping unik antecedent & consequent)
+            $topRules = AssociationRule::select(
+                    'antecedent',
+                    'consequent',
+                    DB::raw('MAX(lift) as lift'),
+                    DB::raw('MAX(support) as support'),
+                    DB::raw('MAX(confidence) as confidence')
+                )
+                ->whereIn('analysis_run_id', $allRuns->pluck('id'))
+                ->groupBy('antecedent', 'consequent')
                 ->orderBy('lift', 'desc')
                 ->limit(10)
                 ->get()
@@ -87,14 +102,36 @@ class DashboardController extends Controller
                     ];
                 })
                 ->toArray();
+        } else {
+            // MODE PERIODE SPESIFIK
+            $topRules = [];
+            if ($latestRun) {
+                $topRules = $latestRun->associationRules()
+                    ->orderBy('lift', 'desc')
+                    ->limit(10)
+                    ->get()
+                    ->map(function ($rule) {
+                        return [
+                            'label' => $rule->antecedent . ' → ' . $rule->consequent,
+                            'lift' => (float) $rule->lift,
+                            'antecedent' => $rule->antecedent,
+                            'consequent' => $rule->consequent,
+                            'support' => (float) $rule->support,
+                            'confidence' => (float) $rule->confidence,
+                        ];
+                    })
+                    ->toArray();
+            }
         }
 
         return view('dashboard', compact(
+            'allRuns',
+            'latestRun',
+            'selectedRunId',
             'totalAnalisis',
             'totalTransaksi',
             'periodeAktif',
             'statusSistem',
-            'latestRun',
             'activityMetrics',
             'topRules'
         ));

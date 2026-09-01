@@ -19,9 +19,10 @@
                                 + Unggah Data Transaksi
                             </a>
 
-                            @if ($latestRun)
+                            @php $targetRun = $latestRun ?? $allRuns->first(); @endphp
+                            @if ($targetRun)
                                 <!-- BAGIAN B: Tombol Ubah Parameter (bg-accent) -->
-                                <a href="{{ route('analysis.parameter', $latestRun) }}" class="inline-flex items-center justify-center rounded-xl bg-[#C1584A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a8483f]">
+                                <a href="{{ route('analysis.parameter', $targetRun) }}" class="inline-flex items-center justify-center rounded-xl bg-[#C1584A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a8483f]">
                                     ⚙️ Ubah Parameter Terbaru
                                 </a>
                             @endif
@@ -63,7 +64,7 @@
                     <p class="text-sm text-slate-500">Periode Aktif</p>
                     <p class="mt-4 text-3xl font-bold text-slate-900">{{ $periodeAktif }}</p>
                     <p class="mt-2 text-xs text-amber-600">
-                        @if ($latestRun)
+                        @if ($totalAnalisis > 0)
                             Filter aktif
                         @else
                             Belum ada periode
@@ -88,18 +89,44 @@
             <!-- 3. Section Bawah: Chart Visualisasi & Menu Cepat -->
             <div class="mt-8 space-y-6">
                 <!-- BAGIAN C: Chart Visualisasi 10 Association Rules dengan Lift Tertinggi -->
-                @if ($latestRun && count($topRules) > 0)
+                @if (count($topRules) > 0)
                     <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <div class="flex items-center justify-between mb-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                             <div>
-                                <h4 class="text-lg font-semibold text-slate-900">Aturan Asosiasi Teratas (Top 10)</h4>
+                                <h4 class="text-lg font-semibold text-slate-900">
+                                    Aturan Asosiasi Teratas {{ $selectedRunId === 'all' ? '(Semua Periode)' : '(Top 10)' }}
+                                </h4>
                                 <p class="text-sm text-slate-500 mt-1">Berdasarkan nilai lift tertinggi</p>
                             </div>
-                            @if (Auth::user()->isAdminPenjualan())
-                                <a href="{{ route('analysis.parameter', $latestRun) }}" class="text-sm font-medium text-[#C1584A] hover:underline">
-                                    Edit Parameter →
-                                </a>
-                            @endif
+
+                            <div class="flex flex-wrap items-center gap-4">
+                                <!-- Filter Dropdown Periode / Analysis Run -->
+                                <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2">
+                                    <label for="run_id" class="text-xs font-semibold uppercase tracking-wider text-slate-600">Periode:</label>
+                                    <select name="run_id" id="run_id" onchange="this.form.submit()" class="rounded-xl border-slate-300 text-sm focus:border-primary focus:ring-primary shadow-sm py-1.5 px-3 font-medium">
+                                        <!-- Opsi ALL (Gabungan) -->
+                                        <option value="all" {{ $selectedRunId === 'all' ? 'selected' : '' }}>
+                                            🌐 Semua Periode (Gabungan)
+                                        </option>
+
+                                        <!-- Opsi Per Analysis Run -->
+                                        @foreach ($allRuns as $run)
+                                            <option value="{{ $run->id }}" {{ $selectedRunId == $run->id ? 'selected' : '' }}>
+                                                {{ $run->nama_file_upload }} ({{ $run->periode_awal?->format('M Y') ?? '-' }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </form>
+
+                                @if (Auth::user()->isAdminPenjualan())
+                                    @php $cardRun = $latestRun ?? $allRuns->first(); @endphp
+                                    @if ($cardRun)
+                                        <a href="{{ route('analysis.parameter', $cardRun) }}" class="text-sm font-medium text-[#C1584A] hover:underline">
+                                            Edit Parameter →
+                                        </a>
+                                    @endif
+                                @endif
+                            </div>
                         </div>
 
                         <!-- Chart Container -->
@@ -135,11 +162,26 @@
                             </table>
                         </div>
                     </div>
-                @elseif ($latestRun && count($topRules) === 0)
-                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+                @else
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm flex items-center justify-between">
                         <p class="text-sm text-amber-800">
                             📊 Belum ada aturan asosiasi yang ditemukan pada analisis ini. Coba ubah parameter analisis untuk hasil yang berbeda.
                         </p>
+                        @if(isset($allRuns) && count($allRuns) > 0)
+                            <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2">
+                                <label for="run_id" class="text-xs font-semibold uppercase tracking-wider text-amber-800">Pilih Periode Lain:</label>
+                                <select name="run_id" id="run_id" onchange="this.form.submit()" class="rounded-xl border-amber-300 text-sm focus:border-primary focus:ring-primary shadow-sm py-1.5 px-3">
+                                    <option value="all" {{ $selectedRunId === 'all' ? 'selected' : '' }}>
+                                        🌐 Semua Periode (Gabungan)
+                                    </option>
+                                    @foreach ($allRuns as $run)
+                                        <option value="{{ $run->id }}" {{ $selectedRunId == $run->id ? 'selected' : '' }}>
+                                            {{ $run->nama_file_upload }} ({{ $run->periode_awal?->format('M Y') ?? '-' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        @endif
                     </div>
                 @endif
 
@@ -197,7 +239,7 @@
     </div>
 
     <!-- Chart.js Script untuk Visualisasi Aturan Asosiasi -->
-    @if ($latestRun && count($topRules) > 0)
+    @if (count($topRules) > 0)
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
