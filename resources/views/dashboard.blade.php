@@ -22,7 +22,7 @@
                             @if ($latestRun)
                                 <!-- BAGIAN B: Tombol Ubah Parameter (bg-accent) -->
                                 <a href="{{ route('analysis.parameter', $latestRun) }}" class="inline-flex items-center justify-center rounded-xl bg-[#C1584A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a8483f]">
-                                    ⚙️ Ubah Parameter
+                                    ⚙️ Ubah Parameter Terbaru
                                 </a>
                             @endif
                         @endif
@@ -86,67 +86,6 @@
             </div>
 
             <!-- 3. Section Bawah: Chart Visualisasi & Menu Cepat -->
-            <div class="mt-8 grid gap-6 lg:grid-cols-[1fr]">
-                <!-- BAGIAN C: Chart Visualisasi 10 Association Rules dengan Lift Tertinggi -->
-                @if ($latestRun && count($topRules) > 0)
-                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h4 class="text-lg font-semibold text-slate-900">Aturan Asosiasi Teratas (Top 10)</h4>
-                                <p class="text-sm text-slate-500 mt-1">Berdasarkan nilai lift tertinggi</p>
-                            </div>
-                            @if (Auth::user()->isAdminPenjualan())
-                                <a href="{{ route('analysis.parameter', $latestRun) }}" class="text-sm font-medium text-[#C1584A] hover:underline">
-                                    Edit Parameter →
-                                </a>
-                            @endif
-                        </div>
-
-                        <!-- Chart Container -->
-                        <div class="mb-8">
-                            <canvas id="rulesChart" height="80"></canvas>
-                        </div>
-
-                        <!-- Data Table -->
-                        <div class="overflow-x-auto border-t border-slate-200 pt-6">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                                        <th class="px-4 py-3">Antecedent</th>
-                                        <th class="px-4 py-3 text-right">Support</th>
-                                        <th class="px-4 py-3 text-right">Confidence</th>
-                                        <th class="px-4 py-3 text-right">Lift</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($topRules as $rule)
-                                        <tr class="border-b border-slate-100 hover:bg-slate-50">
-                                            <td class="px-4 py-3">
-                                                <span class="font-mono text-[11px] text-slate-700" title="{{ $rule['label'] }}">
-                                                    {{ \Illuminate\Support\Str::limit($rule['antecedent'], 30) }} → {{ \Illuminate\Support\Str::limit($rule['consequent'], 20) }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-3 text-right font-mono text-slate-900">{{ number_format($rule['support'] * 100, 2) }}%</td>
-                                            <td class="px-4 py-3 text-right font-mono text-slate-900">{{ number_format($rule['confidence'] * 100, 2) }}%</td>
-                                            <td class="px-4 py-3 text-right font-mono font-semibold text-[#2F6F62]">{{ number_format($rule['lift'], 3) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                @elseif ($latestRun && count($topRules) === 0)
-                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
-                        <p class="text-sm text-amber-800">
-                            📊 Belum ada aturan asosiasi yang ditemukan pada analisis ini. Coba ubah parameter analisis untuk hasil yang berbeda.
-                        </p>
-                    </div>
-                @endif
-            </div>
-
-            <!-- 4. Menu Cepat -->
-            <div class="mt-8">
-            <!-- 3. Section Bawah: Chart Visualisasi & Menu Cepat -->
             <div class="mt-8 space-y-6">
                 <!-- BAGIAN C: Chart Visualisasi 10 Association Rules dengan Lift Tertinggi -->
                 @if ($latestRun && count($topRules) > 0)
@@ -164,8 +103,8 @@
                         </div>
 
                         <!-- Chart Container -->
-                        <div class="mb-8">
-                            <canvas id="rulesChart" height="80"></canvas>
+                        <div class="mb-8 relative h-80 w-full">
+                            <canvas id="rulesChart"></canvas>
                         </div>
 
                         <!-- Data Table -->
@@ -282,7 +221,7 @@
 
                 const ctx = document.getElementById('rulesChart').getContext('2d');
                 new Chart(ctx, {
-                    type: 'barH',
+                    type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [{
@@ -294,9 +233,9 @@
                         }]
                     },
                     options: {
-                        indexAxis: 'y',
+                        indexAxis: 'y', // Properti ini yang membuat tampilan grafik menjadi horizontal
                         responsive: true,
-                        maintainAspectRatio: true,
+                        maintainAspectRatio: false, // Disarankan false agar tinggi canvas fleksibel
                         plugins: {
                             legend: {
                                 display: false
