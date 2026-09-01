@@ -42,7 +42,7 @@ Route::get('/dashboard', function () {
             'color' => 'bg-[#A1582F]',
         ],
         [
-            'label' => 'Pola pembelian terdeteksi',
+            'label' => 'Pola pembelian terdeteksi (terkini)',
             'value' => $latestRun && $latestRun->total_frequent_itemsets
                 ? min(100, max(0, (int) round((($latestRun->total_association_rules ?? 0) / max(1, $latestRun->total_frequent_itemsets)) * 100)))
                 : 0,

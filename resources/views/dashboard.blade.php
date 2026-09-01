@@ -107,7 +107,7 @@
                     <div class="mt-5 space-y-3">
                         @if (Auth::user()->isAdminPenjualan())
                             <a href="{{ route('upload.create') }}" class="flex items-center justify-between rounded-xl border border-[#F0D7A7] bg-[#FFF8EE] px-4 py-3 text-sm font-medium text-[#7B4B2A] transition hover:bg-[#fff1d8]">
-                                <span>Unggah Data Transaksi</span>
+                                <span>Unggah Data Transaksi + Analisis</span>
                                 <span>→</span>
                             </a>
                         @endif
