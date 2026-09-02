@@ -161,6 +161,62 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- Section: Interpretasi & Rekomendasi -->
+                    <div class="mt-8">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold tracking-tight text-slate-900">Interpretasi & Rekomendasi</h3>
+                            <p class="mt-2 text-sm text-slate-600">
+                                Berdasarkan 10 aturan asosiasi dengan nilai lift tertinggi pada periode:
+                                <span class="font-semibold text-slate-900">{{ $labelPeriodeInterpretasi }}</span>
+                            </p>
+                        </div>
+
+                        <!-- Grid Interpretasi Cards -->
+                        <div class="grid gap-6 md:grid-cols-2">
+                            @foreach ($topRules as $rule)
+                                @php
+                                    // Tentukan styling berdasarkan lift strength
+                                    if ($rule['lift'] > 2) {
+                                        $borderColor = 'border-l-4 border-l-[#C1584A]';
+                                        $recomBg = 'bg-[#FEF5F3]';
+                                        $recomText = 'text-slate-900';
+                                    } elseif ($rule['lift'] > 1 && $rule['lift'] <= 2) {
+                                        $borderColor = 'border-l-4 border-l-[#E2A33D]';
+                                        $recomBg = 'bg-[#FFFBF0]';
+                                        $recomText = 'text-slate-900';
+                                    } else {
+                                        $borderColor = 'border-l-4 border-l-[#8B9490]';
+                                        $recomBg = 'bg-[#F5F7F6]';
+                                        $recomText = 'text-slate-600';
+                                    }
+                                @endphp
+                                <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm {{ $borderColor }}">
+                                    <!-- Judul Card: Rule Label -->
+                                    <div class="mb-4 flex items-start justify-between">
+                                        <h4 class="font-mono text-sm font-semibold text-slate-900">
+                                            {{ \Illuminate\Support\Str::limit($rule['antecedent'], 25) }} →<br/>{{ \Illuminate\Support\Str::limit($rule['consequent'], 25) }}
+                                        </h4>
+                                        <span class="inline-block rounded-full bg-slate-100 px-3 py-1 font-mono text-xs font-semibold text-slate-700">
+                                            Lift: {{ number_format($rule['lift'], 3) }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Paragraf Interpretasi -->
+                                    <p class="mb-4 text-sm leading-relaxed text-slate-700">
+                                        {{ $rule['interpretasi'] }}
+                                    </p>
+
+                                    <!-- Paragraf Rekomendasi dengan Background -->
+                                    <div class="rounded-lg {{ $recomBg }} border border-slate-200 p-4">
+                                        <p class="text-sm leading-relaxed {{ $recomText }}">
+                                            {{ $rule['rekomendasi'] }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 @else
                     <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm flex items-center justify-between">
                         <p class="text-sm text-amber-800">

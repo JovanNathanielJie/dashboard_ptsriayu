@@ -9,6 +9,57 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * Buat interpretasi dan rekomendasi untuk satu association rule.
+     *
+     * @param array $rule Array berisi: antecedent, consequent, support, confidence, lift
+     * @return array Array berisi 'interpretasi' dan 'rekomendasi'
+     */
+    private function buatInterpretasi(array $rule): array
+    {
+        $antecedent = $rule['antecedent'];
+        $consequent = $rule['consequent'];
+        $support = $rule['support'] * 100;
+        $confidence = $rule['confidence'] * 100;
+        $lift = $rule['lift'];
+
+        // Format interpretasi sebagai satu paragraf mengalir
+        $interpretasi = sprintf(
+            'Kombinasi produk %s dan %s memiliki nilai support sebesar %.2f%%, artinya %.2f%% dari seluruh transaksi pada periode ini mengandung kedua produk tersebut secara bersamaan. Nilai confidence sebesar %.2f%% menunjukkan bahwa dari transaksi yang mengandung %s, sebesar %.2f%% di antaranya juga mengandung %s.',
+            $antecedent,
+            $consequent,
+            $support,
+            $support,
+            $confidence,
+            $antecedent,
+            $confidence,
+            $consequent
+        );
+
+        // Format rekomendasi dengan logika bertingkat berdasarkan lift
+        if ($lift > 2) {
+            $rekomendasi = sprintf(
+                'Dengan nilai lift sebesar %.3f (jauh di atas 1), kombinasi ini menunjukkan hubungan asosiasi yang KUAT. Sangat direkomendasikan sebagai kandidat utama strategi bundling atau penempatan produk berdekatan.',
+                $lift
+            );
+        } elseif ($lift > 1 && $lift <= 2) {
+            $rekomendasi = sprintf(
+                'Dengan nilai lift sebesar %.3f (di atas 1), kombinasi ini menunjukkan hubungan asosiasi positif dengan kekuatan SEDANG. Dapat dipertimbangkan sebagai kandidat strategi bundling atau promosi, meski keterkaitannya tidak sekuat kombinasi lain dengan nilai lift lebih tinggi.',
+                $lift
+            );
+        } else {
+            $rekomendasi = sprintf(
+                'Dengan nilai lift sebesar %.3f (tidak lebih besar dari 1), kombinasi ini TIDAK menunjukkan hubungan asosiasi yang signifikan. Kombinasi ini TIDAK direkomendasikan sebagai dasar strategi bundling.',
+                $lift
+            );
+        }
+
+        return [
+            'interpretasi' => $interpretasi,
+            'rekomendasi' => $rekomendasi,
+        ];
+    }
+
     public function index(Request $request)
     {
         // 1. Ambil semua daftar run yang sudah selesai
@@ -130,6 +181,19 @@ class DashboardController extends Controller
             }
         }
 
+        // Tambahkan interpretasi dan rekomendasi untuk setiap rule
+        foreach ($topRules as $key => $rule) {
+            $interpretasiData = $this->buatInterpretasi($rule);
+            $topRules[$key]['interpretasi'] = $interpretasiData['interpretasi'];
+            $topRules[$key]['rekomendasi'] = $interpretasiData['rekomendasi'];
+        }
+
+        // Label konteks periode untuk section interpretasi
+        $labelPeriodeInterpretasi = $selectedRun
+            ? $selectedRun->nama_file_upload . ' (' . ($selectedRun->periode_awal?->format('d M Y') ?? '-')
+              . ' - ' . ($selectedRun->periode_akhir?->format('d M Y') ?? '-') . ')'
+            : 'Semua Periode (Gabungan)';
+
         return view('dashboard', compact(
             'allRuns',
             'selectedRun',
@@ -140,7 +204,8 @@ class DashboardController extends Controller
             'periodeAktif',
             'statusSistem',
             'activityMetrics',
-            'topRules'
+            'topRules',
+            'labelPeriodeInterpretasi'
         ));
     }
 }
