@@ -14,7 +14,7 @@
                     S
                 </div>
                 <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#F4C76F]">SISTEM ANALISIS</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#F4C76F]">SISTEM ANALISIS APRIORI</p>
                     <p class="text-sm font-medium text-white">Dashboard</p>
                 </div>
             </div>
@@ -82,7 +82,7 @@
         <div class="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 text-base font-bold">
             ★
         </div>
-        <div class="text-lg font-bold">Sistem Analisis</div>
+        <div class="text-lg font-bold">Dashboard Apriori</div>
     </div>
 
     <div class="space-y-4 p-4">
