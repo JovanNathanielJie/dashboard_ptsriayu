@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ValidasiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -36,6 +37,13 @@ Route::middleware(['role:direktur_utama'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+});
+
+Route::middleware(['role:direktur_utama'])->group(function () {
+    Route::get('/validasi', [ValidasiController::class, 'index'])->name('validasi.index');
+    Route::get('/validasi/{run}', [ValidasiController::class, 'show'])->name('validasi.show');
+    Route::post('/validasi/{run}/approve', [ValidasiController::class, 'approve'])->name('validasi.approve');
+    Route::post('/validasi/{run}/reject', [ValidasiController::class, 'reject'])->name('validasi.reject');
 });
 
 require __DIR__.'/auth.php';

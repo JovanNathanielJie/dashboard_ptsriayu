@@ -97,7 +97,7 @@
             @if (Auth::user()->isDirekturUtama() || Auth::user()->isAdminPenjualan())
                 <a href="{{ route('riwayat.index') }}" class="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition {{ request()->routeIs('riwayat.index') ? 'bg-[#dfeafc] text-[#1d3c6e] shadow-sm ring-1 ring-[#c9d8f4]' : 'hover:bg-slate-200/60' }}">
                     <span>📋</span>
-                    <span>Riwayat Hasil Analisis</span>
+                    <span>Hasil Analisis</span>
                 </a>
             @endif
 
@@ -109,8 +109,16 @@
             @endif
 
             @if (Auth::user()->isDirekturUtama())
+                <a href="{{ route('validasi.index') }}" class="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition {{ request()->routeIs('validasi.index') ? 'bg-[#dfeafc] text-[#1d3c6e] shadow-sm ring-1 ring-[#c9d8f4]' : 'hover:bg-slate-200/60' }}">
+                    <span>✅</span>
+                    <span>Validasi Data Transaksi</span>
+                </a>
+            @endif
+
+            @if (Auth::user()->isDirekturUtama())
                 <a href="{{ route('users.index') }}" class="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition {{ request()->routeIs('users.index') ? 'bg-[#dfeafc] text-[#1d3c6e] shadow-sm ring-1 ring-[#c9d8f4]' : 'hover:bg-slate-200/60' }}">
-                    Kelola Akun
+                    <span>👤</span>
+                    <span>Kelola Akun</span>
                 </a>
             @endif
 

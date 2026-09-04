@@ -4,7 +4,7 @@
 
             <!-- Judul Halaman -->
             <div class="mb-8">
-                <h1 class="text-3xl font-bold tracking-tight text-slate-900">Riwayat Hasil Analisis</h1>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900">Hasil Analisis</h1>
                 <p class="mt-2 text-sm text-slate-600">Lihat dan kelola semua analisis transaksi yang telah dilakukan</p>
             </div>
 
@@ -31,11 +31,15 @@
                                     // Hitung nomor urut berdasarkan pagination
                                     $no = ($runs->currentPage() - 1) * $runs->perPage() + $index + 1;
 
-                                    // Tentukan status badge
+                                    // Tentukan status badge (DISESUAIKAN DENGAN ALUR VALIDASI)
                                     if ($run->status === 'done' && $run->total_frequent_itemsets) {
                                         $statusBadge = ['class' => 'bg-emerald-100 text-emerald-800', 'text' => 'Selesai Dianalisis'];
-                                    } elseif ($run->status === 'done' && !$run->total_frequent_itemsets) {
-                                        $statusBadge = ['class' => 'bg-[#FFF3E0] text-[#E68D28]', 'text' => 'Menunggu Analisis'];
+                                    } elseif ($run->status === 'disetujui') {
+                                        $statusBadge = ['class' => 'bg-[#FFF3E0] text-[#E68D28]', 'text' => 'Disetujui, Menunggu Analisis'];
+                                    } elseif ($run->status === 'menunggu_validasi') {
+                                        $statusBadge = ['class' => 'bg-blue-100 text-blue-800', 'text' => 'Menunggu Validasi'];
+                                    } elseif ($run->status === 'ditolak') {
+                                        $statusBadge = ['class' => 'bg-[#FADBD8] text-[#C1584A]', 'text' => 'Ditolak'];
                                     } elseif ($run->status === 'processing') {
                                         $statusBadge = ['class' => 'bg-[#F5E6D3] text-[#C1584A]', 'text' => 'Sedang Diproses'];
                                     } elseif ($run->status === 'failed') {
@@ -84,26 +88,42 @@
                                     <td class="px-4 py-3">
                                         <span class="font-mono text-slate-700">{{ $hasilAnalisisText }}</span>
                                     </td>
+
+                                    <!-- LOGIKA KOLOM AKSI DISESUAIKAN -->
                                     <td class="px-4 py-3">
                                         <div class="flex flex-wrap gap-2">
-                                            @if ($run->status === 'done')
-                                                <!-- Jika analisis sudah selesai: Munculkan tombol Lihat Detail -->
+                                            @if ($run->total_frequent_itemsets)
+                                                <!-- Jika sudah analisis selesai -->
                                                 <a href="{{ route('dashboard', ['run_id' => $run->id]) }}"
-                                                class="inline-flex items-center justify-center rounded-lg bg-[#2F6F62] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255550]">
+                                                   class="inline-flex items-center justify-center rounded-lg bg-[#2F6F62] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255550]">
                                                     Lihat Detail
                                                 </a>
-                                            @elseif ($run->status !== 'failed')
-                                                <!-- Jika belum dianalisis dan bukan gagal: HANYA admin_penjualan melihat "Atur Parameter" -->
+                                            @elseif ($run->status === 'menunggu_validasi')
+                                                <!-- Jika menunggu validasi, hanya Direktur Utama yang bertindak -->
+                                                @if (Auth::user()->isDirekturUtama())
+                                                    <a href="{{ route('validasi.show', $run) }}" class="inline-flex items-center rounded-lg bg-[#2C6A5C] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#245a4e]">
+                                                        Tinjau & Validasi
+                                                    </a>
+                                                @else
+                                                    <span class="text-xs text-slate-500">Menunggu validasi</span>
+                                                @endif
+                                            @elseif ($run->status === 'disetujui')
+                                                <!-- Jika disetujui, hanya Admin Penjualan yang bisa proses parameter -->
                                                 @if (Auth::user()->isAdminPenjualan())
-                                                    <a href="{{ route('analysis.parameter', $run) }}"
-                                                    class="inline-flex items-center rounded-lg bg-[#C1584A] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#a8483f]">
+                                                    <a href="{{ route('analysis.parameter', $run) }}" class="inline-flex items-center rounded-lg bg-[#C1584A] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#a8483f]">
                                                         ⚙️ Atur Parameter
                                                     </a>
                                                 @else
                                                     <span class="text-xs text-slate-500">-</span>
                                                 @endif
-                                            @else
-                                                <!-- Jika gagal atau kondisi lain -->
+                                                @elseif ($run->status === 'ditolak')
+                                                    <!-- Jika Ditolak, ubah jadi button agar muncul popup saat diklik -->
+                                                    <button type="button"
+                                                            onclick="alert('Alasan Penolakan:\n\n{{ addslashes($run->catatan_validasi ?? 'Ditolak tanpa catatan') }}')"
+                                                            class="text-xs font-semibold text-[#C1584A] cursor-pointer border-b border-dashed border-[#C1584A] hover:text-red-800 transition">
+                                                        Lihat Catatan
+                                                    </button>
+                                                @else
                                                 <span class="text-xs text-slate-500">-</span>
                                             @endif
                                         </div>

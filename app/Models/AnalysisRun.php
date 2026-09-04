@@ -26,6 +26,9 @@ class AnalysisRun extends Model
         'total_frequent_itemsets',
         'total_association_rules',
         'status',
+        'validated_by',
+        'validated_at',
+        'catatan_validasi',
     ];
 
     protected $casts = [

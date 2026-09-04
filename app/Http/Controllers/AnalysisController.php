@@ -12,10 +12,29 @@ use Illuminate\Validation\ValidationException;
 class AnalysisController extends Controller
 {
     /**
+     * Helper untuk menampilkan pesan error berdasarkan status saat ini
+     */
+    private function pesanStatusBelumSiap(AnalysisRun $run): string
+    {
+        return match ($run->status) {
+            'menunggu_validasi' => 'Data ini masih menunggu validasi Direktur Utama.',
+            'ditolak' => 'Data ini ditolak oleh Direktur Utama' . ($run->catatan_validasi ? ": {$run->catatan_validasi}" : '.'),
+            'uploaded', 'processing' => 'Data ini belum selesai diproses.',
+            default => 'Data ini belum dapat dianalisis saat ini.',
+        };
+    }
+
+    /**
      * Tampilkan form untuk mengatur parameter Apriori
      */
     public function parameter(AnalysisRun $run)
     {
+        // GUARD: Pastikan status sudah disetujui (atau sudah pernah dianalisis sebelumnya untuk re-run)
+        if ($run->status !== 'disetujui' && !$run->total_frequent_itemsets) {
+            return redirect()->route('riwayat.index')
+                ->with('error', $this->pesanStatusBelumSiap($run));
+        }
+
         return view('analysis.parameter', compact('run'));
     }
 
@@ -24,6 +43,12 @@ class AnalysisController extends Controller
      */
     public function process(Request $request, AnalysisRun $run)
     {
+        // GUARD: Cegah proses jika data belum valid
+        if ($run->status !== 'disetujui' && !$run->total_frequent_itemsets) {
+            return redirect()->route('riwayat.index')
+                ->with('error', $this->pesanStatusBelumSiap($run));
+        }
+
         // 1. Validasi input parameter
         $validated = $request->validate([
             'min_support' => ['required', 'numeric', 'min:0.01', 'max:1'],
@@ -137,7 +162,7 @@ class AnalysisController extends Controller
             ]);
 
             // 9. Redirect ke dashboard dengan pesan sukses
-            return redirect()->route('dashboard')->with(
+            return redirect()->route('dashboard', ['run_id' => $run->id])->with(
                 'success',
                 "Analisis selesai! Ditemukan {$result['total_frequent_itemsets']} frequent itemsets dan {$result['total_association_rules']} association rules."
             );

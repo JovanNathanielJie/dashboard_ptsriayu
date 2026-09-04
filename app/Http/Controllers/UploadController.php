@@ -97,12 +97,12 @@ class UploadController extends Controller
                 'total_baris_clean'  => $summary['total_baris_clean'],
                 'total_faktur_unik'  => $summary['total_faktur_unik'],
                 'total_produk_unik'  => $summary['total_produk_unik'],
-                'status'             => 'done',
+                'status'             => 'menunggu_validasi',
             ]);
 
-            return redirect()->route('analysis.parameter', $analysisRun)->with(
+            return redirect()->route('riwayat.index')->with(
                 'success',
-                "File berhasil diproses. {$summary['total_baris_clean']} baris transaksi tersimpan dari {$summary['total_faktur_unik']} faktur. Silakan atur parameter Apriori untuk melanjutkan analisis."
+                "File berhasil diunggah ({$summary['total_baris_clean']} baris transaksi dari {$summary['total_faktur_unik']} faktur) dan menunggu validasi dari Direktur Utama sebelum dapat dianalisis."
             );
 
         } catch (ValidationException $e) {
