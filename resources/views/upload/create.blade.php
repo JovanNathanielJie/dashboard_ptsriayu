@@ -40,15 +40,10 @@
                         <form id="uploadForm" action="{{ route('upload.store') }}" method="POST" enctype="multipart/form-data" class="mt-6 space-y-5">
                             @csrf
 
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label for="periode_awal" class="mb-2 block text-sm font-medium text-slate-700">Periode Awal Bulan</label>
-                                    <input id="periode_awal" name="periode_awal" type="date" value="{{ old('periode_awal') }}" required class="w-full rounded-xl border border-[#E7DAB8] bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-[#C8922B] focus:outline-none focus:ring-2 focus:ring-[#F4C76F]/20">
-                                </div>
-                                <div>
-                                    <label for="periode_akhir" class="mb-2 block text-sm font-medium text-slate-700">Periode Akhir Bulan</label>
-                                    <input id="periode_akhir" name="periode_akhir" type="date" value="{{ old('periode_akhir') }}" required class="w-full rounded-xl border border-[#E7DAB8] bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-[#C8922B] focus:outline-none focus:ring-2 focus:ring-[#F4C76F]/20">
-                                </div>
+                            <!-- Mengganti 2 Input Tanggal menjadi 1 Input Bulan -->
+                            <div>
+                                <label for="periode_bulan" class="mb-2 block text-sm font-medium text-slate-700">Pilih Bulan & Tahun Transaksi</label>
+                                <input id="periode_bulan" name="periode_bulan" type="month" value="{{ old('periode_bulan') }}" required class="w-full rounded-xl border border-[#E7DAB8] bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition focus:border-[#C8922B] focus:outline-none focus:ring-2 focus:ring-[#F4C76F]/20">
                             </div>
 
                             <div class="rounded-2xl border-2 border-dashed border-[#B4C9C5] bg-[#F3F8F7] p-6 transition hover:border-[#2B6F6A] hover:bg-[#edf6f4]">

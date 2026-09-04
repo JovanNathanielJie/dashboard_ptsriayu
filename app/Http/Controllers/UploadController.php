@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnalysisRun;
 use App\Models\TransaksiItem;
+use Carbon\Carbon; // Tambahkan ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -18,20 +19,17 @@ class UploadController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Ubah validasi menjadi format Y-m (Tahun-Bulan)
         $validated = $request->validate([
-            'periode_awal'  => ['required', 'date'],
-            'periode_akhir' => ['required', 'date', 'after_or_equal:periode_awal'],
+            'periode_bulan' => ['required', 'date_format:Y-m'],
             'excel_file'    => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
         ], [
-            'periode_awal.required'         => 'Periode awal wajib diisi.',
-            'periode_awal.date'             => 'Periode awal harus berupa tanggal yang valid.',
-            'periode_akhir.required'        => 'Periode akhir wajib diisi.',
-            'periode_akhir.date'            => 'Periode akhir harus berupa tanggal yang valid.',
-            'periode_akhir.after_or_equal'  => 'Periode akhir harus sama atau setelah periode awal.',
-            'excel_file.required'           => 'File Excel wajib diunggah.',
-            'excel_file.file'               => 'File yang diunggah harus berupa file Excel.',
-            'excel_file.mimes'              => 'Format file harus .xlsx atau .xls.',
-            'excel_file.max'                => 'Ukuran file terlalu besar. Maksimal 10 MB.',
+            'periode_bulan.required'    => 'Bulan periode transaksi wajib dipilih.',
+            'periode_bulan.date_format' => 'Format bulan tidak valid.',
+            'excel_file.required'       => 'File Excel wajib diunggah.',
+            'excel_file.file'           => 'File yang diunggah harus berupa file Excel.',
+            'excel_file.mimes'          => 'Format file harus .xlsx atau .xls.',
+            'excel_file.max'            => 'Ukuran file terlalu besar. Maksimal 10 MB.',
         ]);
 
         $userId = Auth::id();
@@ -41,25 +39,32 @@ class UploadController extends Controller
             ])->withInput();
         }
 
+        // 2. Hitung Otomatis Tanggal Awal & Akhir menggunakan Carbon
+        $date = Carbon::createFromFormat('Y-m', $validated['periode_bulan']);
+        $periodeAwal = $date->copy()->startOfMonth()->format('Y-m-d');
+        $periodeAkhir = $date->copy()->endOfMonth()->format('Y-m-d');
+
         $file = $validated['excel_file'];
         $originalName = $file->getClientOriginalName();
 
+        // 3. Simpan ke database dengan tanggal yang sudah digenerate
         $analysisRun = AnalysisRun::create([
             'user_id'          => $userId,
             'nama_file_upload' => $originalName,
-            'periode_awal'     => $validated['periode_awal'],
-            'periode_akhir'    => $validated['periode_akhir'],
+            'periode_awal'     => $periodeAwal,
+            'periode_akhir'    => $periodeAkhir,
             'status'           => 'uploaded',
         ]);
 
         try {
             $analysisRun->update(['status' => 'processing']);
 
+            // 4. Kirim ke Python API menggunakan tanggal hasil generate otomatis
             $response = Http::timeout(60)
                 ->attach('file', file_get_contents($file->getRealPath()), $originalName)
                 ->post(config('services.python_api.url') . '/parse-excel', [
-                    'periode_awal'  => $validated['periode_awal'],
-                    'periode_akhir' => $validated['periode_akhir'],
+                    'periode_awal'  => $periodeAwal,
+                    'periode_akhir' => $periodeAkhir,
                 ]);
 
             if ($response->failed()) {

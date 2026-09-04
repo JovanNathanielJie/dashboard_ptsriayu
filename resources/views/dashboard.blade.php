@@ -133,6 +133,42 @@
                             <canvas id="rulesChart"></canvas>
                         </div>
 
+                        <!-- Keterangan Lift Ratio -->
+                        <div class="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <p class="text-sm font-semibold text-slate-900 mb-2">
+                                📌 Cara Membaca Nilai <span class="font-mono">Lift</span>
+                            </p>
+                            <p class="text-sm leading-relaxed text-slate-600 mb-3">
+                                <span class="font-mono font-semibold">Lift</span> mengukur kekuatan hubungan antara dua
+                                produk dibandingkan jika keduanya dibeli secara independen (tidak saling memengaruhi).
+                                Semakin tinggi nilai <span class="font-mono">lift</span>, semakin kuat kecenderungan
+                                kedua produk dibeli bersamaan.
+                            </p>
+                            <div class="flex flex-wrap gap-3 text-xs">
+                                <div class="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-3 py-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-[#C1584A]"></span>
+                                    <span class="font-mono font-semibold text-slate-900">Lift &gt; 2</span>
+                                    <span class="text-slate-600">Hubungan kuat — kandidat utama bundling</span>
+                                </div>
+                                <div class="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-3 py-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-[#E2A33D]"></span>
+                                    <span class="font-mono font-semibold text-slate-900">1 &lt; Lift &le; 2</span>
+                                    <span class="text-slate-600">Hubungan sedang — dapat dipertimbangkan</span>
+                                </div>
+                                <div class="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-3 py-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-[#8B9490]"></span>
+                                    <span class="font-mono font-semibold text-slate-900">Lift &le; 1</span>
+                                    <span class="text-slate-600">Tidak signifikan — tidak direkomendasikan</span>
+                                </div>
+                            </div>
+                            <p class="mt-3 text-xs text-slate-500">
+                                Kolom <span class="font-mono">Support</span> menunjukkan seberapa sering kombinasi
+                                produk muncul di seluruh transaksi, sedangkan <span class="font-mono">Confidence</span>
+                                menunjukkan seberapa besar kemungkinan produk kedua dibeli ketika produk pertama sudah
+                                dibeli.
+                            </p>
+                        </div>
+
                         <!-- Data Table -->
                         <div class="overflow-x-auto border-t border-slate-200 pt-6">
                             <table class="w-full text-sm">

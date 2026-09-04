@@ -15,6 +15,7 @@ class DashboardController extends Controller
      * @param array $rule Array berisi: antecedent, consequent, support, confidence, lift
      * @return array Array berisi 'interpretasi' dan 'rekomendasi'
      */
+    
     private function buatInterpretasi(array $rule): array
     {
         $antecedent = $rule['antecedent'];
@@ -23,33 +24,33 @@ class DashboardController extends Controller
         $confidence = $rule['confidence'] * 100;
         $lift = $rule['lift'];
 
-        // Format interpretasi sebagai satu paragraf mengalir
+        // Interpretasi: format "jika beli X, maka beli Y sebesar Z%" -- langsung dipahami tanpa istilah statistik
         $interpretasi = sprintf(
-            'Kombinasi produk %s dan %s memiliki nilai support sebesar %.2f%%, artinya %.2f%% dari seluruh transaksi pada periode ini mengandung kedua produk tersebut secara bersamaan. Nilai confidence sebesar %.2f%% menunjukkan bahwa dari transaksi yang mengandung %s, sebesar %.2f%% di antaranya juga mengandung %s.',
+            'Jika pelanggan membeli %s, maka sebesar %.2f%% di antaranya turut membeli %s. Pola pembelian bersamaan ini ditemukan pada %.2f%% dari seluruh transaksi pada periode ini.',
             $antecedent,
+            $confidence,
             $consequent,
-            $support,
-            $support,
-            $confidence,
-            $antecedent,
-            $confidence,
-            $consequent
+            $support
         );
 
-        // Format rekomendasi dengan logika bertingkat berdasarkan lift
+        // Rekomendasi: fokus pada penyesuaian stok, bukan penempatan produk
         if ($lift > 2) {
             $rekomendasi = sprintf(
-                'Dengan nilai lift sebesar %.3f (jauh di atas 1), kombinasi ini menunjukkan hubungan asosiasi yang KUAT. Sangat direkomendasikan sebagai kandidat utama strategi bundling atau penempatan produk berdekatan.',
-                $lift
+                'Hubungan pembelian kedua produk ini tergolong KUAT (lift %.3f). Sangat direkomendasikan sebagai kandidat utama strategi bundling. Apabila stok %s ditambah, sebaiknya stok %s turut diperbanyak mengikuti proporsi permintaan tersebut.',
+                $lift,
+                $antecedent,
+                $consequent
             );
         } elseif ($lift > 1 && $lift <= 2) {
             $rekomendasi = sprintf(
-                'Dengan nilai lift sebesar %.3f (di atas 1), kombinasi ini menunjukkan hubungan asosiasi positif dengan kekuatan SEDANG. Dapat dipertimbangkan sebagai kandidat strategi bundling atau promosi, meski keterkaitannya tidak sekuat kombinasi lain dengan nilai lift lebih tinggi.',
-                $lift
+                'Hubungan pembelian kedua produk ini tergolong SEDANG (lift %.3f). Dapat dipertimbangkan sebagai kandidat strategi bundling. Penambahan stok %s dapat diikuti penambahan stok %s secukupnya, meski keterkaitannya tidak sekuat kombinasi lain.',
+                $lift,
+                $antecedent,
+                $consequent
             );
         } else {
             $rekomendasi = sprintf(
-                'Dengan nilai lift sebesar %.3f (tidak lebih besar dari 1), kombinasi ini TIDAK menunjukkan hubungan asosiasi yang signifikan. Kombinasi ini TIDAK direkomendasikan sebagai dasar strategi bundling.',
+                'Hubungan pembelian kedua produk ini TIDAK signifikan (lift %.3f). Kombinasi ini TIDAK direkomendasikan sebagai dasar strategi bundling maupun penyesuaian stok.',
                 $lift
             );
         }

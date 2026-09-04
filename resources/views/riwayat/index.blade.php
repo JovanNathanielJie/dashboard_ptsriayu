@@ -86,33 +86,24 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex flex-wrap gap-2">
-                                            @if ($run->total_frequent_itemsets)
-                                                <!-- Jika analisis sudah selesai: SEMUA role melihat "Lihat Detail" -->
+                                            @if ($run->status === 'done')
+                                                <!-- Jika analisis sudah selesai: Munculkan tombol Lihat Detail -->
                                                 <a href="{{ route('dashboard', ['run_id' => $run->id]) }}"
-                                                   class="inline-flex items-center rounded-lg bg-[#2F6F62] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#255550]">
-                                                    👁️ Lihat Detail
+                                                class="inline-flex items-center justify-center rounded-lg bg-[#2F6F62] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#255550]">
+                                                    Lihat Detail
                                                 </a>
-
-                                                <!-- Jika admin_penjualan: tambahkan "Jalankan Ulang" -->
-                                                @if (Auth::user()->isAdminPenjualan())
-                                                    <a href="{{ route('analysis.parameter', $run) }}"
-                                                       class="inline-flex items-center rounded-lg bg-[#F4C76F] px-3 py-1.5 text-xs font-semibold text-[#1F2A2D] transition hover:bg-[#e9ba5d]">
-                                                        🔄 Jalankan Ulang
-                                                    </a>
-                                                @endif
                                             @elseif ($run->status !== 'failed')
                                                 <!-- Jika belum dianalisis dan bukan gagal: HANYA admin_penjualan melihat "Atur Parameter" -->
                                                 @if (Auth::user()->isAdminPenjualan())
                                                     <a href="{{ route('analysis.parameter', $run) }}"
-                                                       class="inline-flex items-center rounded-lg bg-[#C1584A] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#a8483f]">
+                                                    class="inline-flex items-center rounded-lg bg-[#C1584A] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#a8483f]">
                                                         ⚙️ Atur Parameter
                                                     </a>
                                                 @else
-                                                    <!-- direktur_utama: tidak ada tombol -->
                                                     <span class="text-xs text-slate-500">-</span>
                                                 @endif
                                             @else
-                                                <!-- Jika gagal: tidak ada tombol apapun -->
+                                                <!-- Jika gagal atau kondisi lain -->
                                                 <span class="text-xs text-slate-500">-</span>
                                             @endif
                                         </div>
