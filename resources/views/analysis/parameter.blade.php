@@ -92,13 +92,13 @@
                         step="0.01"
                         min="0.01"
                         max="1"
-                        value="{{ old('min_support', $run->min_support ?? 0.10) }}"
+                        value="{{ old('min_support', $run->min_support ?? 0.20) }}"
                         required
                         class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
 
                     <p class="mt-2 text-sm text-slate-600">
-                        <strong>Rentang:</strong> 0.01 - 1.00 (default: 0.10)
+                        <strong>Rentang:</strong> 0.01 - 1.00 (default: 0.20)
                         <br>
                         <strong>Penjelasan:</strong> Ambang batas minimum kemunculan kombinasi produk agar dianggap sering muncul. Semakin kecil nilainya, semakin banyak kombinasi yang ditemukan, tetapi proses analisis akan lebih lambat.
                     </p>
